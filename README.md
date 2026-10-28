@@ -12,7 +12,7 @@
 
 FestPass is a three-tier registration application consisting of a frontend, backend API, and PostgreSQL database.
 
-The application is containerized using Docker and Docker Compose. Trivy is used to scan the backend image for vulnerabilities. The fixed image is published to Docker Hub using versioned tags, and Cosign will be used to sign and verify the release.
+The application is containerized using Docker and Docker Compose. Trivy is used to scan the backend image for vulnerabilities. The hardened backend image is published to Docker Hub using versioned tags, and Cosign is used to sign and verify the release.
 
 ## Technology Stack
 
@@ -32,11 +32,23 @@ The application is containerized using Docker and Docker Compose. Trivy is used 
 - **Networking:** Separate frontend and backend networks restrict direct database access from the frontend.
 - **Persistence:** A named Docker volume stores PostgreSQL data.
 
-## Stage 3 — Vulnerability Scanning
+## Stage 1 — Containerization
 
-Trivy was used to scan the original backend image (`fest-backend:0.1`) and the fixed image (`fest-backend:0.2`).
+The application components are containerized using Docker and orchestrated with Docker Compose.
 
-The fixed image uses a pinned Python base image, runs the application as a non-root user, and installs the required Python dependencies.
+The services include the frontend, backend API, and PostgreSQL database.
+
+## Stage 2 — Container Security
+
+Docker Compose networking and persistent storage are configured to support application isolation and database persistence.
+
+The frontend and backend networks restrict direct database access from the frontend.
+
+## Stage 3 — Vulnerability Scanning and Image Hardening
+
+Trivy was used to scan the original backend image (`fest-backend:0.1`) and the hardened image (`fest-backend:0.2`).
+
+The hardened image uses a pinned Python base image, upgrades installed operating-system packages, installs Python dependencies, and runs the application as a non-root user.
 
 ### Before-and-After Comparison
 
@@ -50,11 +62,11 @@ Trivy reports separate results for operating-system packages and Python packages
 | Python HIGH vulnerabilities | 6 | 5 |
 | Image content size | 401 MB | 71.9 MB |
 
-The fixed image reduced the reported OS CRITICAL vulnerabilities from 234 to 0 and reduced its image content size from 401 MB to 71.9 MB.
+The hardened image reduced reported OS CRITICAL vulnerabilities from 234 to 0 and reduced image content size from 401 MB to 71.9 MB.
 
 ### Security Verification
 
-The following command was used to check for fixable CRITICAL vulnerabilities:
+The following command checks for CRITICAL vulnerabilities while ignoring vulnerabilities without available fixes:
 
 ```bash
 trivy image --severity CRITICAL --ignore-unfixed --exit-code 1 fest-backend:0.2
