@@ -5,3 +5,8 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+
+# Cosign private signing keys
+*.key
+
+.env
